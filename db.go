@@ -169,6 +169,36 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 	return logRecord.Value, nil
 }
 
+// Delete 删除一条数据
+func (db *DB) Delete(key []byte) error {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	if len(key) == 0 {
+		return ErrKeyIsEmpty
+	}
+	//判断key是否存在，不存在就直接返回
+	if pos := db.index.Get(key); pos == nil {
+		return nil
+	}
+	//构造一个删除的LogRecord
+	logRecord := &data.LogRecord{
+		Key:   key,
+		Value: nil,
+		Type:  data.LogRecordDeleted,
+	}
+	//将LogRecord写入到数据文件
+	_, err := db.appendLogRecord(logRecord)
+	if err != nil {
+		return err
+	}
+	//把内存索引中对应的key删除
+	if ok := db.index.Delete(key); !ok {
+		return ErrIndexUpdateFailed
+	}
+	return nil
+
+}
+
 func checkOptions(options Options) error {
 	if options.DirPath == "" {
 		return errors.New("database dir path is empty")
