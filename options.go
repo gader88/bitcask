@@ -1,5 +1,7 @@
 package my_bitcask
 
+import "os"
+
 type Options struct {
 	DirPath string //数据库数据目录
 
@@ -16,3 +18,13 @@ const (
 	Btree IndexerType = iota + 1
 	ART
 )
+
+var DefaultOptions = Options{
+	DirPath:      os.TempDir(),
+	DataFileSize: 256 * 1024 * 1024,
+	//BytePerSync:        0,
+	SyncWrites: false,
+	IndexType:  Btree,
+	//MMapAtStartup:      true,
+	//DataFileMergeRatio: 0.5,
+}
