@@ -8,13 +8,37 @@ import (
 )
 
 // Index 抽象索引接口，后续接入其他数据结构，只需要实现这个接口即可
-type Index interface {
+type Indexer interface {
 	// Put 向索引存储对应的数据位置信息
 	Put(key []byte, pos *data.LogRecordsPos) bool
 	//Get 根据索引得到对应的数据位置信息
 	Get(key []byte) *data.LogRecordsPos
 	//Delete 删除索引中对应的数据位置信息
 	Delete(key []byte) bool
+}
+
+type IndexType = int8 //定义索引类型
+
+const (
+	// BTreeType btree索引
+	Btree IndexType = iota + 1
+
+	//ART自适应基数树索引
+	ART
+)
+
+// NewIndexer 根据类型初始化索引
+func NewIndexer(typ IndexType) Indexer {
+	switch typ {
+	case Btree:
+		return NewBTree()
+	case ART:
+		return nil
+	default:
+		panic("unsupported index type")
+	}
+
+	return nil
 }
 
 // Item btree需要定义的item
