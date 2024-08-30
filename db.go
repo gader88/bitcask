@@ -145,7 +145,12 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 	if logRecordPos == nil {
 		return nil, ErrKeyNotFound
 	}
-	//根据索引信息从数据文件中读取数据
+	//根据索引信息获取数据
+	return db.getValueByPosition(logRecordPos)
+}
+
+// getValueByPosition 根据索引信息获取数据
+func (db *DB) getValueByPosition(logRecordPos *data.LogRecordsPos) ([]byte, error) {
 	var dataFailer *data.DataFile
 	if db.activeFile.FileId == logRecordPos.Fid {
 		dataFailer = db.activeFile

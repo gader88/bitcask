@@ -15,6 +15,18 @@ type Indexer interface {
 	Get(key []byte) *data.LogRecordsPos
 	//Delete 删除索引中对应的数据位置信息
 	Delete(key []byte) bool
+	Iterator(reverse bool) Iterator //Iterator 迭代器索引
+}
+
+// Iterator定义一个通用索引迭代器
+type Iterator interface {
+	Rewind()                    // 重新回到迭代器起点
+	Seek(key []byte)            // 找到第一个大于等于key的位置，从这个位置向后遍历
+	Next()                      // 下一个key
+	Valid() bool                // 是否遍历完所有的key
+	Key() []byte                // 当前位置的key
+	Value() *data.LogRecordsPos // 当前位置的value
+	Close()                     // 关闭迭代器释放资源
 }
 
 type IndexType = int8 //定义索引类型
