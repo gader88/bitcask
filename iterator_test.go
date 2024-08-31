@@ -10,7 +10,7 @@ import (
 
 func TestDB_NewIterator(t *testing.T) {
 	opts := DefaultOptions
-	dir, _ := os.MkdirTemp("", "bitcask-go-iterator")
+	dir, _ := os.MkdirTemp("", "bitcask-go-1")
 	opts.DirPath = dir
 	db, err := Open(opts)
 	defer destroyDB(db)

@@ -82,7 +82,7 @@ func (bt *BTree) Iterator(reverse bool) Iterator {
 	if bt.tree == nil {
 		return nil
 	}
-	bt.lock.RLock()
+	bt.lock.Lock()
 	defer bt.lock.Unlock()
 	return newBTreeIterator(bt.tree, reverse)
 }
@@ -113,7 +113,7 @@ func (bti *bTreeIterator) Next() {
 
 // Valid 判断迭代器是否有效,用于推出遍历
 func (bti *bTreeIterator) Valid() bool {
-	return bti.currIndex <= len(bti.values)
+	return bti.currIndex < len(bti.values)
 }
 
 // Key 当前位置Key数据
@@ -129,4 +129,8 @@ func (bti *bTreeIterator) Value() *data.LogRecordsPos {
 // Close 关闭迭代器，释放资源
 func (bti *bTreeIterator) Close() {
 	bti.values = nil
+}
+
+func (bt *BTree) Size() int {
+	return bt.tree.Len()
 }

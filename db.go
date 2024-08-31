@@ -51,6 +51,34 @@ func Open(options Options) (*DB, error) {
 	return db, nil
 }
 
+func (db *DB) Close() error {
+	if db.activeFile == nil {
+		return nil
+	}
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	//关闭当前活跃文件
+	if err := db.activeFile.Close(); err != nil {
+		return err
+	}
+	//关闭旧的数据文件
+	for _, file := range db.olderFiles {
+		if err := file.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (db *DB) Sync() error {
+	if db.activeFile == nil {
+		return nil
+	}
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return db.activeFile.Sync()
+}
+
 // Put 写入一条数据
 func (db *DB) Put(key []byte, value []byte) error {
 	// key为空时
@@ -151,19 +179,19 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 
 // getValueByPosition 根据索引信息获取数据
 func (db *DB) getValueByPosition(logRecordPos *data.LogRecordsPos) ([]byte, error) {
-	var dataFailer *data.DataFile
+	var dataFiler *data.DataFile
 	if db.activeFile.FileId == logRecordPos.Fid {
-		dataFailer = db.activeFile
+		dataFiler = db.activeFile
 	} else {
-		dataFailer = db.olderFiles[logRecordPos.Fid]
+		dataFiler = db.olderFiles[logRecordPos.Fid]
 	}
 	// 数据文件为空
-	if dataFailer == nil {
+	if dataFiler == nil {
 		return nil, ErrDataFileNotFound
 	}
 
 	//根据偏移量读取数据
-	logRecord, _, err := dataFailer.ReadLogRecord(logRecordPos.Offset)
+	logRecord, _, err := dataFiler.ReadLogRecord(logRecordPos.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -292,6 +320,34 @@ func (db *DB) loadIndexFromDataFiles() error {
 		}
 		if i == len(db.fileIds)-1 { //最后一个文件，记录下当前的Write offset
 			db.activeFile.WriteOff = offset
+		}
+	}
+	return nil
+}
+
+func (db *DB) ListKeys() [][]byte {
+	iterator := db.index.Iterator(false)
+	keys := make([][]byte, db.index.Size())
+	var i int
+	for iterator.Rewind(); iterator.Valid(); iterator.Next() {
+		keys[i] = iterator.Key()
+		i++
+	}
+	return keys
+}
+
+// Fold 遍历数据，对每个数据执行func，直到遍历结束或者func返回false
+func (db *DB) Fold(fn func(key []byte, value []byte) bool) error {
+	db.mu.RLock()
+	defer db.mu.RUnlock()
+	iterator := db.index.Iterator(false)
+	for iterator.Rewind(); iterator.Valid(); iterator.Next() {
+		value, err := db.getValueByPosition(iterator.Value())
+		if err != nil {
+			return err
+		}
+		if !fn(iterator.Key(), value) {
+			break
 		}
 	}
 	return nil
