@@ -13,7 +13,11 @@ var (
 	ErrInvalidCRC = errors.New("invalid crc value, log record maybe corrupted")
 )
 
-const DataFileNameSuffix = ".data"
+const (
+	DataFileNameSuffix    = ".data"
+	HintFileName          = "hint-index"
+	MergeFinishedFileName = "merge-finished"
+)
 
 // DataFile 数据文件
 type DataFile struct {
@@ -24,6 +28,25 @@ type DataFile struct {
 
 func OpenDataFile(dirPath string, fileId uint32) (*DataFile, error) {
 	fileName := filepath.Join(dirPath, fmt.Sprintf("%09d", fileId)+DataFileNameSuffix)
+	return newDataFile(fileName, fileId)
+}
+
+// OpenHintFile 打开hint文件
+func OpenHintFile(dirPath string) (*DataFile, error) {
+	fileName := filepath.Join(dirPath, HintFileName)
+	return newDataFile(fileName, 0)
+
+}
+func GetDataFileName(dirPath string, fileID uint32) string {
+	return filepath.Join(dirPath, fmt.Sprintf("%09d", fileID)+DataFileNameSuffix)
+}
+func OpenMergeFinishedFile(dirPath string) (*DataFile, error) {
+	fileName := filepath.Join(dirPath, MergeFinishedFileName)
+	return newDataFile(fileName, 0)
+
+}
+
+func newDataFile(fileName string, fileId uint32) (*DataFile, error) {
 	//初始化IOManager管理器接口
 	ioManager, err := fio.NewIOManager(fileName)
 	if err != nil {
@@ -44,6 +67,11 @@ func (df *DataFile) Write(buf []byte) error {
 	}
 	//更新文件写入的位置
 	df.WriteOff += int64(n)
+	return nil
+}
+
+// WriteLogRecord 写入logRecord TODO
+func (df *DataFile) WriteHintRecord(key []byte, pos *LogRecordsPos) error {
 	return nil
 }
 
