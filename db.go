@@ -284,7 +284,7 @@ func (db *DB) Delete(key []byte) error {
 		return err
 	}
 	//把内存索引中对应的key删除
-	if ok := db.index.Delete(key); !ok {
+	if _, ok := db.index.Delete(key); !ok {
 		return ErrIndexUpdateFailed
 	}
 	return nil
@@ -365,7 +365,7 @@ func (db *DB) loadIndexFromDataFiles() error {
 	updateIndex := func(key []byte, typ data.LogRecordType, pos *data.LogRecordsPos) {
 		var ok bool
 		if typ == data.LogRecordDeleted {
-			ok = db.index.Delete(key) //如果是删除的直接从索引删除
+			_, ok = db.index.Delete(key) //如果是删除的直接从索引删除
 		} else { //否则保存到索引中
 			ok = db.index.Put(key, pos)
 		}
