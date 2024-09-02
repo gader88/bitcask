@@ -31,6 +31,7 @@ type IndexerType = int8
 const (
 	Btree IndexerType = iota + 1
 	ART
+	BPTree
 )
 
 var DefaultOptions = Options{

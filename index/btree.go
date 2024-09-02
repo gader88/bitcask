@@ -38,16 +38,20 @@ func (bt *BTree) Get(key []byte) *data.LogRecordsPos { //这个库中的btree读
 	return btreeItem.(*Item).pos
 }
 
-func (bt *BTree) Delete(key []byte) bool {
+func (bt *BTree) Delete(key []byte) (*data.LogRecordsPos, bool) {
 	it := &Item{key: key}
 	bt.lock.Lock()
 	oldItem := bt.tree.Delete(it)
 	if oldItem == nil {
 		defer bt.lock.Unlock()
-		return false
+		return nil, false
 	}
 	defer bt.lock.Unlock()
-	return true
+	return oldItem.(*Item).pos, true
+}
+
+func (bt *BTree) Close() error {
+	return nil
 }
 
 // btree 索引迭代器

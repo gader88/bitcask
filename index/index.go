@@ -7,19 +7,20 @@ import (
 	"github.com/google/btree"
 )
 
-// Index 抽象索引接口，后续接入其他数据结构，只需要实现这个接口即可
+// Indexer 抽象索引接口，后续接入其他数据结构，只需要实现这个接口即可
 type Indexer interface {
 	// Put 向索引存储对应的数据位置信息
 	Put(key []byte, pos *data.LogRecordsPos) bool
 	//Get 根据索引得到对应的数据位置信息
 	Get(key []byte) *data.LogRecordsPos
 	//Delete 删除索引中对应的数据位置信息
-	Delete(key []byte) bool
+	Delete(key []byte) (*data.LogRecordsPos, bool)
 	Iterator(reverse bool) Iterator //Iterator 迭代器索引
 	Size() int                      //返回索引中存了多少数据
+	Close() error                   //关闭索引
 }
 
-// Iterator定义一个通用索引迭代器
+// Iterator 定义一个通用索引迭代器
 type Iterator interface {
 	Rewind()                    // 重新回到迭代器起点
 	Seek(key []byte)            // 找到第一个大于等于key的位置，从这个位置向后遍历
@@ -38,15 +39,18 @@ const (
 
 	//ART自适应基数树索引
 	ART
+	BPTree
 )
 
 // NewIndexer 根据类型初始化索引
-func NewIndexer(typ IndexType) Indexer {
+func NewIndexer(typ IndexType, dirPath string, sync bool) Indexer {
 	switch typ {
 	case Btree:
 		return NewBTree()
 	case ART:
 		return nil
+	case BPTree:
+		return NewBPlusTree(dirPath, sync)
 	default:
 		panic("unsupported index type")
 	}

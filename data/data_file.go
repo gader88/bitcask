@@ -17,6 +17,7 @@ const (
 	DataFileNameSuffix    = ".data"
 	HintFileName          = "hint-index"
 	MergeFinishedFileName = "merge-finished"
+	SeqNoFileName         = "seq-no"
 )
 
 // DataFile 数据文件
@@ -43,9 +44,13 @@ func GetDataFileName(dirPath string, fileID uint32) string {
 func OpenMergeFinishedFile(dirPath string) (*DataFile, error) {
 	fileName := filepath.Join(dirPath, MergeFinishedFileName)
 	return newDataFile(fileName, 0)
-
 }
 
+// 打开事务序列号文件
+func OpenSeqNoFile(dirPath string) (*DataFile, error) {
+	fileName := filepath.Join(dirPath, SeqNoFileName)
+	return newDataFile(fileName, 0)
+}
 func newDataFile(fileName string, fileId uint32) (*DataFile, error) {
 	//初始化IOManager管理器接口
 	ioManager, err := fio.NewIOManager(fileName)
