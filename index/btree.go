@@ -21,12 +21,15 @@ func NewBTree() *BTree {
 	}
 }
 
-func (bt *BTree) Put(key []byte, pos *data.LogRecordsPos) bool {
+func (bt *BTree) Put(key []byte, pos *data.LogRecordsPos) *data.LogRecordsPos {
 	it := &Item{key: key, pos: pos}
 	bt.lock.Lock()
-	bt.tree.ReplaceOrInsert(it)
+	oldItem := bt.tree.ReplaceOrInsert(it)
+	if oldItem == nil {
+		return nil
+	}
 	defer bt.lock.Unlock()
-	return true
+	return oldItem.(*Item).pos
 }
 
 func (bt *BTree) Get(key []byte) *data.LogRecordsPos { //这个库中的btree读不用加锁
@@ -42,8 +45,9 @@ func (bt *BTree) Delete(key []byte) (*data.LogRecordsPos, bool) {
 	it := &Item{key: key}
 	bt.lock.Lock()
 	oldItem := bt.tree.Delete(it)
+	bt.lock.Unlock()
 	if oldItem == nil {
-		defer bt.lock.Unlock()
+
 		return nil, false
 	}
 	defer bt.lock.Unlock()

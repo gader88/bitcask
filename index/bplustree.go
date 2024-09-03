@@ -37,14 +37,18 @@ func NewBPlusTree(dirPath string, syncWrites bool) *BPlusTree {
 }
 
 // Put 向索引存储对应的数据位置信息
-func (bpt *BPlusTree) Put(key []byte, pos *data.LogRecordsPos) bool {
+func (bpt *BPlusTree) Put(key []byte, pos *data.LogRecordsPos) *data.LogRecordsPos {
+	var oldVal []byte
 	if err := bpt.tree.Update(func(tx *bbolt.Tx) error {
 		bucket := tx.Bucket(indexBucketName)
 		return bucket.Put(key, data.EncodeLogRecordPos(pos))
 	}); err != nil {
 		panic("failed to put value in bptree")
 	}
-	return true
+	if len(oldVal) == 0 {
+		return nil
+	}
+	return data.DecodeLogRecordPos(oldVal)
 }
 
 // Get 根据索引得到对应的数据位置信息
