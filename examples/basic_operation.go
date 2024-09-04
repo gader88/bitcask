@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	tiny_kvDB "my_bitcask"
+	my_bitcask "my_bitcask"
 )
 
 func main() {
-	opts := tiny_kvDB.DefaultOptions
+	opts := my_bitcask.DefaultOptions
 	opts.DirPath = "/tmp/bitcask-go"
-	db, err := tiny_kvDB.Open(opts)
+	db, err := my_bitcask.Open(opts)
 	if err != nil {
 		panic(err)
 	}
