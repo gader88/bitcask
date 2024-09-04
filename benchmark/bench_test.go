@@ -39,7 +39,7 @@ func Benchmark_Put(b *testing.B) {
 }
 
 func Benchmark_Get(b *testing.B) {
-	rand.Seed(uint64(time.Now().UnixNano()))
+	rand.Seed(int64(time.Now().UnixNano()))
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
@@ -51,7 +51,7 @@ func Benchmark_Get(b *testing.B) {
 }
 
 func Benchmark_Del(b *testing.B) {
-	rand.Seed(uint64(time.Now().UnixNano()))
+	rand.Seed(int64(time.Now().UnixNano()))
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
