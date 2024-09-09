@@ -454,7 +454,7 @@ func (rds *RedisDataStructure) findMetaData(key []byte, dataType redisDataType) 
 	if errors.Is(err, my_bitcask.ErrKeyNotFound) {
 		exist = false
 	} else {
-		meta = decodeMetaData(metaBuf)
+		meta = decodeMetadata(metaBuf)
 		// 判断数据类型是否匹配
 		if meta.dataType != dataType {
 			return nil, ErrWrongTypeOperation
